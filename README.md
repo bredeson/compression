@@ -6,7 +6,7 @@ Open a gzip-/bgzip-/bzip2-/lzma-/xz-compressed file or uncompressed file
 in binary or text mode.
 
 The `filename` argument can be an actual filename (a str or bytes object), or
-an existing file object to read from or write to. Use "-" to open a file
+an existing file object to read from or write to. Use `"-"` to open a file
 object to the appropriate stdin/stdout stream requested via mode. Serial
 readling via HTTP and FTP URL file path is supported.
 
