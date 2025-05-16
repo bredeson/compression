@@ -23,7 +23,7 @@ behavior, and line ending(s).
 
 To read from/write to compressed streams from stdin/stdout or existing
 file-like objects, the appropriate compression `open()` function object must
-be passed via the `opener attribute (e.g., `opener=gzip.open`). When writing
+be passed via the `opener` attribute (e.g., `opener=gzip.open`). When writing
 `compresslevel` must be set to a value between 1 and 9, inclusive (default
 is 9).
 
