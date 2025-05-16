@@ -55,3 +55,12 @@ infile = open(STDIO, mode='r', opener=gzip.open)
 
 outfile = open(STDIO, mode='w', opener=gzip.open)
 ```
+
+## Other dependencies
+
+- pysam
+- urllib
+- locale
+- os
+- io
+- sys
