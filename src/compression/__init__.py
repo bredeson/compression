@@ -5,6 +5,7 @@ compressed and uncompressed files
 import io
 import sys
 import locale
+import warnings
 
 __all__ = ('open','is_stream','STDIO')
 
@@ -118,8 +119,9 @@ def open(filename, mode='rt', compresslevel=0, encoding=None, errors=None, newli
     elif compressformat:
         compression = import_compression_module(compressformat)
 
-    if compression is None or compressformat == 'io':
+    if compression is None or compression == io or compressformat == 'io':
         compressformat = None
+        compression = None
     
     # Unless we explicitly request binary mode, default to
     # text mode. gzip, lzma, bz2, and bz2file default to 'rb',
@@ -151,7 +153,6 @@ def open(filename, mode='rt', compresslevel=0, encoding=None, errors=None, newli
 
     # Now define appropriate options for the compression:
     options = {
-        'mode'   : mode,
         'errors' : errors,
         'newline': newline
     }
@@ -165,20 +166,30 @@ def open(filename, mode='rt', compresslevel=0, encoding=None, errors=None, newli
 
     # Lastly, open the file (if necessary)
     if is_stream(filename):
-        if not compression:
-            raise ValueError("file-like object defined but compression not given")
-
-    elif filename == STDIO:
-        fileobj = sys.stdin if 'r' in mode else sys.stdout
+        # bgzip does not permit input streams...
+        if hasattr(filename, 'buffer'):
+            filename = filename.buffer
         if compression:
-            # To use an compression() with our input/output stream,
-            # use stream.buffer, as std streams decode bytes
-            # to str under the hood automatically:
-            # https://stackoverflow.com/questions/53245314/python-read-gzip-from-stdin
-            return compression.open(fileobj.buffer, **options)
+            if compressformat.endswith('bgzip'):
+                warnings.warn(
+                    "bgzip does not support input streams; opening with gzip. "
+                    "If this is not desired, open the file with bgzip directly"
+                )
+                compressformat = 'gzip'
+                compression = import_compression_module(compressformat)
         else:
-            # std uncompressed stream:
-            return fileobj
+            return io.TextIOWrapper(filename, **options)
+        
+    elif filename == STDIO:
+        filename = sys.stdin if 'r' in mode else sys.stdout
+        if not compression:
+            return filename  # already an io.TextIOWrapper object
+        
+        # To use an compression() with our input/output stream,
+        # use stream.buffer, as std streams decode bytes
+        # to str under the hood automatically:
+        # https://stackoverflow.com/questions/53245314/python-read-gzip-from-stdin
+        filename = filename.buffer
     else:
         url = urlparse(filename)
         if 'ftp' in url.scheme or 'http' in url.scheme:
@@ -188,12 +199,15 @@ def open(filename, mode='rt', compresslevel=0, encoding=None, errors=None, newli
                 else:
                     filename = urlopen(filename)
             elif 'r' in mode:
-                del(options['mode'])
                 return io.TextIOWrapper(urlopen(filename), **options)
             else:
                 raise TypeError("URL streams not writeable")
         else:
             filename = expanduser(filename)
-            
+
+    options['mode'] = mode
+    if not compression:
+        compression = io
+        
     return compression.open(filename, **options)
 
