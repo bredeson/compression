@@ -9,9 +9,9 @@ __all__ = ('BGZFile','open')
 
 import io
 
-from .constants import _EMPTY
 from pysam import BGZFile as _BGZFile
 
+_EMPTY = ''
 _STR_TYPES = (str, unicode) if (str is bytes) else (str, bytes)
 
 

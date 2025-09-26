@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys
-import io, gzip, lzma
+import io, gzip, lzma, bgzip
 import subprocess
 
 _PYTHON_VERSION = sys.version_info[:2]
@@ -13,7 +13,7 @@ else:
     
     
 from urllib.request import urlopen
-from compression import open, bgzip
+from compression import open
 
 print("TEST caller writing:")
 print("  test.caller.none.bed")
@@ -481,7 +481,7 @@ os.remove("test.stdio.gzip-str.py")
 print("  test.stdio.bgzip-bare.bed")
 with __builtins__.open("test.stdio.bgzip-bare.py", mode='w') as s:
     c = """
-from compression import bgzip
+import bgzip
 from compression import STDIO, open
 with open(STDIO, mode='w', compression=bgzip) as o:
     print("chr\t0\t1", file=o)
@@ -658,7 +658,7 @@ os.remove("test.stdio.gzip-str.py")
 print("  test.stdio.bgzip-bare.bed")
 with __builtins__.open("test.stdio.bgzip-bare.py", mode='w') as s:
     c = """
-from compression import bgzip
+import bgzip
 from compression import STDIO, open
 with open(STDIO, mode='r', compression=bgzip) as i:
     l = next(i).strip()
