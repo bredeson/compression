@@ -1,9 +1,10 @@
 
 PREFIX     := /usr/local
 
-SRC_DIR    := src
-TEST_DIR   := test
+PACKAGE    := compression
+SOURCE_DIR := src
 BUILD_DIR  := build
+TEST_DIR   := test
 
 LIB_DIR    := $(BUILD_DIR)/lib
 
@@ -30,22 +31,13 @@ INSTALL_PATH ?= \
 
 BUILD_TARGETS = $(BGZ_BUILD_TARGETS) $(COMPRESSION_BUILD_TARGETS)
 
-BGZ_BUILD_TARGETS = \
-	$(LIB_DIR)/bgzip.py
+BGZ_SOURCE_FILES = $(SOURCE_DIR)/bgzip.py
+BGZ_BUILD_TARGETS = $(patsubst $(SOURCE_DIR)/%,$(LIB_DIR)/%,$(BGZ_SOURCE_FILES))
+BGZ_INSTALL_TARGETS = $(patsubst $(SOURCE_DIR)/%,$(INSTALL_PATH)/%,$(BGZ_SOURCE_FILES))
 
-COMPRESSION_BUILD_TARGETS = \
-	$(LIB_DIR)/compression/__init__.py \
-	$(LIB_DIR)/compression/constants.py \
-	$(LIB_DIR)/compression/filenames.py
-
-
-BGZ_INSTALL_TARGETS = \
-	$(INSTALL_PATH)/bgzip.py
-
-COMPRESSION_INSTALL_TARGETS = \
-	$(INSTALL_PATH)/compression/__init__.py \
-	$(INSTALL_PATH)/compression/constants.py \
-	$(INSTALL_PATH)/compression/filenames.py
+COMPRESSION_SOURCE_FILES = $(wildcard $(SOURCE_DIR)/$(PACKAGE)/*.py)
+COMPRESSION_BUILD_TARGETS = $(patsubst $(SOURCE_DIR)/%,$(LIB_DIR)/%,$(COMPRESSION_SOURCE_FILES))
+COMPRESSION_INSTALL_TARGETS = $(patsubst $(SOURCE_DIR)/%,$(INSTALL_PATH)/%,$(COMPRESSION_SOURCE_FILES))
 
 
 .SUFFIXES:
@@ -57,18 +49,18 @@ all: build
 
 
 
-build: $(LIB_DIR) $(BUILD_TARGETS)
+build: $(LIB_DIR) $(BGZ_BUILD_TARGETS) $(COMPRESSION_BUILD_TARGETS)
 
 $(LIB_DIR):
 	@$(MKDIR_P) $@
 
-$(LIB_DIR)/%: $(SRC_DIR)/%
+$(LIB_DIR)/%: $(SOURCE_DIR)/%
 	@$(MKDIR_P) $(@D)
 	@$(AWK) '{print "#",$$_}' $(LICENSE) | $(CAT) - $< >$@
 
 
 
-test: $(BUILD_TARGETS)
+test: $(COMPRESSION_BUILD_TARGETS)
 	cd $(TEST_DIR) && PYTHONPATH="$(PWD)/$(LIB_DIR)" $(PYTHON) test.py
 
 
@@ -83,12 +75,12 @@ install: test install-bgzip install-compression
 
 install-bgzip: $(BGZ_INSTALL_TARGETS)
 
-install-compression: $(COMPRESSION_INSTALL_TARGETS)
+install-compression: test $(COMPRESSION_INSTALL_TARGETS)
 
 $(INSTALL_PATH)/%.py: $(LIB_DIR)/%.py
 	$(INSTALL_REG) $< $@
 
-$(INSTALL_PATH)/compression/%.py: $(LIB_DIR)/compression/%.py
+$(INSTALL_PATH)/$(PACKAGE)/%.py: $(LIB_DIR)/$(PACKAGE)/%.py
 	$(INSTALL_REG) $< $@
 
 
