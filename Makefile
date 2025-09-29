@@ -1,12 +1,12 @@
 
 PREFIX     := /usr/local
 
-PACKAGE    := compression
-SOURCE_DIR := src
-BUILD_DIR  := build
-TEST_DIR   := test
+PACKAGE     = compression
+SOURCE_DIR  = src
+BUILD_DIR   = build
+TEST_DIR    = test
 
-LIB_DIR    := $(BUILD_DIR)/lib
+LIB_DIR     = $(BUILD_DIR)/lib
 
 ECHO       := echo
 PYTHON     := $(filter /%,$(shell /bin/sh -c 'type python'))
