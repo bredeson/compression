@@ -25,8 +25,7 @@ MKDIR_P     = $(MKDIR) -p
 
 LICENSE    := LICENSE
 
-
-INSTALL_DIR = \
+INSTALL_PATH ?= \
 	$(PREFIX)/lib/$(PYTHON_VER)/site-packages
 
 BUILD_TARGETS = $(BGZ_BUILD_TARGETS) $(COMPRESSION_BUILD_TARGETS)
@@ -41,12 +40,12 @@ COMPRESSION_BUILD_TARGETS = \
 
 
 BGZ_INSTALL_TARGETS = \
-	$(INSTALL_DIR)/bgzip.py
+	$(INSTALL_PATH)/bgzip.py
 
 COMPRESSION_INSTALL_TARGETS = \
-	$(INSTALL_DIR)/compression/__init__.py \
-	$(INSTALL_DIR)/compression/constants.py \
-	$(INSTALL_DIR)/compression/filenames.py
+	$(INSTALL_PATH)/compression/__init__.py \
+	$(INSTALL_PATH)/compression/constants.py \
+	$(INSTALL_PATH)/compression/filenames.py
 
 
 .SUFFIXES:
@@ -75,8 +74,8 @@ test: $(BUILD_TARGETS)
 
 
 activate:
-	@$(ECHO) 'export PYTHONPATH="$(INSTALL_DIR):$$PYTHONPATH";' >activate
-	@$(ECHO) '#setenv PYTHONPATH "$(INSTALL_DIR):$$PYTHONPATH";' >>activate
+	@$(ECHO) 'export PYTHONPATH="$(INSTALL_PATH)$${PYTHONPATH:+:$${PYTHONPATH}}";' >activate
+	@$(ECHO) '#setenv PYTHONPATH "$(INSTALL_PATH):$$PYTHONPATH";' >>activate
 
 
 
@@ -86,10 +85,10 @@ install-bgzip: $(BGZ_INSTALL_TARGETS)
 
 install-compression: $(COMPRESSION_INSTALL_TARGETS)
 
-$(INSTALL_DIR)/%.py: $(LIB_DIR)/%.py
+$(INSTALL_PATH)/%.py: $(LIB_DIR)/%.py
 	$(INSTALL_REG) $< $@
 
-$(INSTALL_DIR)/compression/%.py: $(LIB_DIR)/compression/%.py
+$(INSTALL_PATH)/compression/%.py: $(LIB_DIR)/compression/%.py
 	$(INSTALL_REG) $< $@
 
 
