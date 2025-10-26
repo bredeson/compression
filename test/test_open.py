@@ -5,6 +5,7 @@ import sys
 import io
 import gzip
 import lzma
+import locale
 import unittest
 import subprocess
 import shutil
@@ -28,6 +29,8 @@ except Exception:
     bgzip = None
 
 from compression import open, STDIO
+from compression import is_stream, infer_encoding
+# Additional unit tests for is_stream() and infer_encoding()
 
 BEDLINE = "chr\t0\t1"
 
@@ -225,7 +228,7 @@ class CompressionTests(unittest.TestCase):
             with open(url, mode="r", compression=None) as i:
                 line = next(i).strip()
         except Exception as e:
-            self.skipTest(f"skipping URL test due to: {e}")
+            self.skipTest("skipping URL test due to: {0}" % str(e))
         self.assertEqual(line, BEDLINE)
 
     def test_2_url_io(self):
@@ -234,7 +237,7 @@ class CompressionTests(unittest.TestCase):
             with open(url, mode="r", compression="io") as i:
                 line = next(i).strip()
         except Exception as e:
-            self.skipTest(f"skipping URL test due to: {e}")
+            self.skipTest("skipping URL test due to: {0}" % str(e))
         self.assertEqual(line, BEDLINE)
 
     def test_2_url_gzip(self):
@@ -243,7 +246,7 @@ class CompressionTests(unittest.TestCase):
             with open(url, mode="r", compression="gzip") as i:
                 line = next(i).strip()
         except Exception as e:
-            self.skipTest(f"skipping URL test due to: {e}")
+            self.skipTest("skipping URL test due to: {0}" % str(e))
         self.assertEqual(line, BEDLINE)
 
     def test_2_url_bzip2(self):
@@ -252,7 +255,7 @@ class CompressionTests(unittest.TestCase):
             with open(url, mode="r", compression="bz2") as i:
                 line = next(i).strip()
         except Exception as e:
-            self.skipTest(f"skipping URL test due to: {e}")
+            self.skipTest("skipping URL test due to: {0}" % str(e))
         self.assertEqual(line, BEDLINE)
 
     def test_2_url_lzma(self):
@@ -261,7 +264,7 @@ class CompressionTests(unittest.TestCase):
             with open(url, mode="r", compression="lzma") as i:
                 line = next(i).strip()
         except Exception as e:
-            self.skipTest(f"skipping URL test due to: {e}")
+            self.skipTest("skipping URL test due to: {0}" % str(e))
         self.assertEqual(line, BEDLINE)
 
     def test_2_url_xz(self):
@@ -270,7 +273,7 @@ class CompressionTests(unittest.TestCase):
             with open(url, mode="r", compression="xz") as i:
                 line = next(i).strip()
         except Exception as e:
-            self.skipTest(f"skipping URL test due to: {e}")
+            self.skipTest("skipping URL test due to: {0}" % str(e))
         self.assertEqual(line, BEDLINE)
 
     @unittest.skipIf(bgzip is None,"bgzip module not available")
@@ -288,7 +291,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, None), BEDLINE)
 
     def test_3_stdio_write_io_bare(self):
@@ -298,7 +301,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "io"), BEDLINE)
 
     def test_3_stdio_write_io_str(self):
@@ -308,7 +311,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "io"), BEDLINE)
 
     def test_3_stdio_write_gzip_bare(self):
@@ -318,7 +321,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "gzip"), BEDLINE)
 
     def test_3_stdio_write_gzip_str(self):
@@ -328,7 +331,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "gzip"), BEDLINE)
 
     def test_3_stdio_write_bzip2_bare(self):
@@ -338,7 +341,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "bz2"), BEDLINE)
 
     def test_3_stdio_write_bzip2_str(self):
@@ -348,7 +351,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "bz2"), BEDLINE)
 
     def test_3_stdio_write_lzma_bare(self):
@@ -358,7 +361,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"python3 {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "lzma"), BEDLINE)
 
     def test_3_stdio_write_lzma_str(self):
@@ -368,7 +371,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"python3 {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "lzma"), BEDLINE)
 
     def test_3_stdio_write_xz_str(self):
@@ -378,7 +381,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"python3 {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "xz"), BEDLINE)
 
     @unittest.skipIf(bgzip is None,"bgzip module not available")
@@ -389,7 +392,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "bgzip"), BEDLINE)
 
     @unittest.skipIf(bgzip is None,"bgzip module not available")
@@ -400,7 +403,7 @@ class CompressionTests(unittest.TestCase):
         with open(script, "w") as s:
             s.write(src)
         self.files.extend([script, out])
-        subprocess.run(f"{PY3} {script} > {out}", shell=True, check=True)
+        subprocess.run("{PY3} {script} > {out}".format(PY3=PY3,script=script,out=out), shell=True, check=True)
         self.assertEqual(self._read_first_line(out, "bgzip"), BEDLINE)
 
     # STDIO read tests (explicit)
@@ -414,7 +417,7 @@ class CompressionTests(unittest.TestCase):
         infile = "test.stdio.none.bed"
         self._write_file(infile, None)
         # use absolute executable paths for robustness
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_io_bare(self):
         script = "test.stdio.io-bare.py"
@@ -424,7 +427,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.io-bare.bed"
         self._write_file(infile, io)
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_io_str(self):
         script = "test.stdio.io-str.py"
@@ -434,7 +437,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.io-str.bed"
         self._write_file(infile, "io")
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_gzip_bare(self):
         script = "test.stdio.gzip-bare.py"
@@ -444,7 +447,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.gzip-bare.bed"
         self._write_file(infile, gzip)
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_gzip_str(self):
         script = "test.stdio.gzip-str.py"
@@ -454,7 +457,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.gzip-str.bed"
         self._write_file(infile, "gzip")
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_bzip2_bare(self):
         script = "test.stdio.bzip2-bare.py"
@@ -464,7 +467,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.bzip2-bare.bed"
         self._write_file(infile, bz2)
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_bzip2_str(self):
         script = "test.stdio.bzip2-str.py"
@@ -474,7 +477,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.bzip2-str.bed"
         self._write_file(infile, "bz2")
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_lzma_bare(self):
         script = "test.stdio.lzma-bare.py"
@@ -484,7 +487,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.lzma-bare.bed"
         self._write_file(infile, lzma)
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_lzma_str(self):
         script = "test.stdio.lzma-str.py"
@@ -494,7 +497,7 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.lzma-str.bed"
         self._write_file(infile, "lzma")
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
 
     def test_4_stdio_read_xz_str(self):
         script = "test.stdio.xz-str.py"
@@ -504,8 +507,44 @@ class CompressionTests(unittest.TestCase):
         self.files.append(script)
         infile = "test.stdio.xz-str.bed"
         self._write_file(infile, "xz")
-        subprocess.run(f"{CAT} {infile} | {PY3} {script}", shell=True, check=True)
+        subprocess.run("{CAT} {infile} | {PY3} {script}".format(PY3=PY3,CAT=CAT,script=script,infile=infile), shell=True, check=True)
+
+
+class TestCompressionUtils(unittest.TestCase):
+    def test_is_stream_true(self):
+        class DummyStream:
+            def __next__(self):
+                return 1
+            def close(self):
+                pass
+        stream = DummyStream()
+        self.assertTrue(is_stream(stream))
+
+    def test_is_stream_false_obj(self):
+        class NotAStream:
+            def close(self):
+                pass
+        obj = NotAStream()
+        self.assertFalse(is_stream(obj))
+    
+    def test_is_stream_false_list(self):
+        self.assertFalse(is_stream([]))
+
+    def test_is_stream_false_string(self):
+        self.assertFalse(is_stream("string"))
+
+
+    def test_infer_encoding_none(self):
+        # Should return preferred encoding
+        expected = locale.getpreferredencoding(False)
+        self.assertEqual(infer_encoding(None), expected)
+
+    def test_infer_encoding_explicit(self):
+        self.assertEqual(infer_encoding("utf-8"), "utf-8")
+        self.assertEqual(infer_encoding("ascii"), "ascii")
 
 
 if __name__ == "__main__":
     unittest.main()
+
+

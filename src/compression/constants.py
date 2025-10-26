@@ -7,7 +7,7 @@ _PYTHON_VERSION = sys.version_info[:2]
 STDIO = '-'
 
 COMPRESSION_SUFFIX = {
-    'lzma'  : ('.lzma','.xz'),
+    'lzma'  : ('.lzma','.lz','.xz'),
     'gzip'  : ('.gzip','-gz','.z','-z','_z'),
     'bzip2' : ('.bzip2','.bz2','.bz'),
     'bgzip' : ('.bgzip','.bgzf','.bgz','.gz')

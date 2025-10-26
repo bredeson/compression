@@ -1,5 +1,5 @@
 
-PREFIX     := /usr/local
+PREFIX     ?= /usr/local
 
 PACKAGE    := compression
 LICENSE    := LICENSE
@@ -10,7 +10,6 @@ LIB_DIR    := $(BUILD_DIR)/lib
 CURR_DIR   := $(shell pwd)
 
 ECHO       := echo
-PYTHON     := $(filter /%,$(shell /bin/sh -c 'type python'))
 INSTALL    := $(filter /%,$(shell /bin/sh -c 'type install'))
 MKDIR      := $(filter /%,$(shell /bin/sh -c 'type mkdir'))
 AWK        := $(filter /%,$(shell /bin/sh -c 'type awk'))
@@ -20,7 +19,16 @@ RM_R        = $(RM) -r
 INSTALL_REG = $(INSTALL) -p -m 644 -D
 MKDIR_P     = $(MKDIR) -p
 
-PYTHON_VERSION := $(shell $(PYTHON) --version 2>&1 | awk '{if (/Python/) {split($$2,v,".");print "python"v[1]"."v[2]}}')
+ifneq ($(shell which python3),)
+PYTHON     := $(shell which python3)
+else ifneq ($(shell which python),)
+PYTHON     := $(shell which python)
+else
+$(error "Python interpreter not found. Please install Python and ensure it is accessible via PATH.")
+endif
+
+
+PYTHON_VERSION := $(shell $(PYTHON) --version 2>&1 | $(AWK) '{if (/Python/) {split($$2,v,".");print "python"v[1]"."v[2]}}')
 INSTALL_PATH ?= $(PREFIX)/lib/$(PYTHON_VERSION)/site-packages
 
 BUILD_TARGETS = $(BGZ_BUILD_TARGETS) $(COMPRESSION_BUILD_TARGETS)
@@ -54,12 +62,12 @@ $(LIB_DIR):
 
 $(LIB_DIR)/%: $(SRC_DIR)/%
 	@$(MKDIR_P) $(@D)
-	@$(AWK) '{print "#",$$_}' $(LICENSE) | $(CAT) - $< >$@
+	@$(AWK) '{print "#",$$0}' $(LICENSE) | $(CAT) - $< >$@
 
 
 
 test: $(COMPRESSION_BUILD_TARGETS)
-	cd $(TEST_DIR) && PYTHONPATH="$(CURR_DIR)/$(LIB_DIR)" $(PYTHON) test.py
+	cd $(TEST_DIR) && PYTHONPATH="$(CURR_DIR)/$(LIB_DIR)" $(PYTHON) -m unittest discover -v 
 
 
 
@@ -84,4 +92,4 @@ $(INSTALL_PATH)/$(PACKAGE)/%.py: $(LIB_DIR)/$(PACKAGE)/%.py
 
 
 clean:
-	-$(RM_R) $(BUILD_DIR) $(TEST_DIR)/test.caller.* $(TEST_DIR)/test.stream.* $(TEST_DIR)/test.stdio.* 
+	-$(RM_R) $(BUILD_DIR)
