@@ -216,3 +216,6 @@ def open(filename, mode='rt', compresslevel=0, encoding=None, errors=None, newli
         
     return compression.open(filename, **options)
 
+
+#TODO: add zlib (https://docs.python.org/3/library/zlib.html) support
+#TODO: add zipfile (https://docs.python.org/3/library/zipfile.html) support
